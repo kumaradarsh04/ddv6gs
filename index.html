@@ -49,19 +49,6 @@
       margin-top: 16px;
       display: none;
     }
-    #profile-avatar {
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  background-color: #1a73e8;
-  color: #ffffff;
-  font-size: 32px;
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 16px auto;
-}
   </style>
 </head>
 <body>
@@ -92,6 +79,11 @@
     }
 
     function showProfile(user) {
+      if (!user) {
+        showError('User profile data is missing.');
+        return;
+      }
+      
       document.getElementById('g_id_signin').style.display = 'none';
       document.getElementById('profile').style.display = 'block';
       // document.getElementById('profile-avatar').src = user.picture;
