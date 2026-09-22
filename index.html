@@ -95,24 +95,29 @@
     // browser and produced an ID token ("credential"). We send that token
     // to our own backend so it can be verified server-side.
     async function handleCredentialResponse(response) {
-      try {
-        const res = await fetch('/auth/google', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ credential: response.credential }),
-        });
+  try {
+    const res = await fetch('/auth/google', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ credential: response.credential }),
+    });
 
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          throw new Error(data.error || 'Sign-in failed');
-        }
-
-        const data = await res.json();
-        showProfile(data.user);
-      } catch (err) {
-        showError(err.message);
-      }
+    // Check if response contains JSON
+    const contentType = res.headers.get('content-type');
+    let data = {};
+    if (contentType && contentType.includes('application/json')) {
+      data = await res.json();
     }
+
+    if (!res.ok) {
+      throw new Error(data.error || `Server returned error ${res.status}`);
+    }
+
+    showProfile(data.user);
+  } catch (err) {
+    showError(err.message);
+  }
+}
 
     // Check whether the user already has an active session (e.g. after a
     // page refresh) by asking our backend.
