@@ -92,16 +92,12 @@
     }
 
     function showProfile(user) {
-  document.getElementById('g_id_signin').style.display = 'none';[cite: 3]
-  document.getElementById('profile').style.display = 'block';[cite: 3]
-  
-  // Extract the first letter of name or email, fallback to 'U'
-  const initial = (user.name || user.email || 'U').charAt(0).toUpperCase();
-  document.getElementById('profile-avatar').textContent = initial;
-
-  document.getElementById('profile-name').textContent = user.name || '';[cite: 3]
-  document.getElementById('profile-email').textContent = user.email || '';[cite: 3]
-}
+      document.getElementById('g_id_signin').style.display = 'none';
+      document.getElementById('profile').style.display = 'block';
+      // document.getElementById('profile-picture').src = user.picture;
+      document.getElementById('profile-name').textContent = user.name;
+      document.getElementById('profile-email').textContent = user.email;
+    }
 
     function showSignedOut() {
       document.getElementById('g_id_signin').style.display = 'flex';
