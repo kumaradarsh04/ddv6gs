@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Google Sign-In Demo</title>
+
+  <!-- Google Identity Services library -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      max-width: 480px;
+      margin: 80px auto;
+      text-align: center;
+      color: #202124;
+    }
+    #g_id_signin {
+      display: flex;
+      justify-content: center;
+      margin-top: 24px;
+    }
+    #profile {
+      display: none;
+      margin-top: 24px;
+      padding: 24px;
+      border: 1px solid #e0e0e0;
+      border-radius: 12px;
+    }
+    #profile img {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+    }
+    #signout-btn {
+      margin-top: 16px;
+      padding: 8px 16px;
+      border: 1px solid #dadce0;
+      border-radius: 4px;
+      background: white;
+      cursor: pointer;
+    }
+    #signout-btn:hover {
+      background: #f5f5f5;
+    }
+    #error {
+      color: #d93025;
+      margin-top: 16px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>Google Sign-In Demo</h1>
+  <p>Click the button below to sign in with your Google account.</p>
+
+  <!-- Google renders its button inside this div -->
+  <div id="g_id_signin"></div>
+
+  <div id="profile">
+    <img id="profile-picture" src="" alt="Profile picture" />
+    <h2 id="profile-name"></h2>
+    <p id="profile-email"></p>
+    <button id="signout-btn">Sign out</button>
+  </div>
+
+  <p id="error"></p>
+
+  <script>
+    // Replace this with your own Google Client ID (see the README for how
+    // to get one). It is safe to expose this value in front-end code.
+    const GOOGLE_CLIENT_ID = '215614999054-8seuea0iui18ic4cvnnlp6ko707f1tck.apps.googleusercontent.com';
+
+    function showError(message) {
+      const el = document.getElementById('error');
+      el.textContent = message;
+      el.style.display = 'block';
+    }
+
+    function showProfile(user) {
+      document.getElementById('g_id_signin').style.display = 'none';
+      document.getElementById('profile').style.display = 'block';
+      document.getElementById('profile-picture').src = user.picture;
+      document.getElementById('profile-name').textContent = user.name;
+      document.getElementById('profile-email').textContent = user.email;
+    }
+
+    function showSignedOut() {
+      document.getElementById('g_id_signin').style.display = 'flex';
+      document.getElementById('profile').style.display = 'none';
+    }
+
+    // This callback fires once Google has authenticated the user in the
+    // browser and produced an ID token ("credential"). We send that token
+    // to our own backend so it can be verified server-side.
+    async function handleCredentialResponse(response) {
+      try {
+        const res = await fetch('/auth/google', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ credential: response.credential }),
+        });
+
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || 'Sign-in failed');
+        }
+
+        const data = await res.json();
+        showProfile(data.user);
+      } catch (err) {
+        showError(err.message);
+      }
+    }
+
+    // Check whether the user already has an active session (e.g. after a
+    // page refresh) by asking our backend.
+    async function checkExistingSession() {
+      try {
+        const res = await fetch('/auth/me');
+        if (res.ok) {
+          const data = await res.json();
+          showProfile(data.user);
+        } else {
+          showSignedOut();
+        }
+      } catch {
+        showSignedOut();
+      }
+    }
+
+    document.getElementById('signout-btn').addEventListener('click', async () => {
+      await fetch('/auth/logout', { method: 'POST' });
+      showSignedOut();
+      // Also tell Google's library to forget the auto-select state.
+      google.accounts.id.disableAutoSelect();
+    });
+
+    window.onload = () => {
+      google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleCredentialResponse,
+      });
+
+      google.accounts.id.renderButton(
+        document.getElementById('g_id_signin'),
+        { theme: 'outline', size: 'large', width: 320 }
+      );
+
+      // Optional: shows Google's "One Tap" prompt.
+      // google.accounts.id.prompt();
+
+      checkExistingSession();
+    };
+  </script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "name": "google-signin-demo",
+  "version": "1.0.0",
+  "description": "Minimal example of Google Sign-In (Google Identity Services) with a Node/Express backend that verifies ID tokens.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cookie-parser": "^1.4.6",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "google-auth-library": "^9.11.0"
+  }
+}
